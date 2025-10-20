@@ -1,0 +1,38 @@
+/* Center the game board and add padding */
+.game-board {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin: 0 auto;
+    width: fit-content;
+}
+
+.cell {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    background-color: #3995ff;
+    cursor: pointer;
+    justify-content: center;
+    align-items: center;
+}
+
+.coin {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #0b4485;
+}
+
+.coin.player1 {
+    background-color: #ff0000;
+}
+
+.coin.player2 {
+    background-color: #ffde22;
+}
+
+.winning-coin {
+    box-shadow: 0 0 10px 2px rgb(0, 0, 0);
+}
