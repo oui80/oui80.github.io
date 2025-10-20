@@ -1,10 +1,13 @@
 export default class Connect4 {
     constructor(columns = 7, rows = 6) {
+        this.id = Date.now();
         this.columns = columns;
         this.rows = rows;
         this.board = this.createBoard();
         this.turn = 1;
         this.winningIndexes = null;
+        this.movesPlayed = [];
+        this.isEnded = 0;
     }
 
     createBoard() {
@@ -18,8 +21,6 @@ export default class Connect4 {
         }
         return board;
     }
-
-
 
     availableMoves(board) {
         let moves = [];
@@ -48,7 +49,8 @@ export default class Connect4 {
         const moves = this.availableMoves(board);
         if (moves.includes(colIndex) && turn == player) {
             board[colIndex][rowIndex] = player;
-            state.turn *= -1
+            state.turn *= -1;
+            state.movesPlayed.push(colIndex);
         } else {
             // cannot play
         }
@@ -75,7 +77,8 @@ export default class Connect4 {
         const player = board[colIndex][rowIndex];
         const needed = 4;
 
-        function countInDirection(dx, dy) {
+        // arrow function to use this context
+        const countInDirection = (dx, dy) => {
             let count = 0;
             let x = colIndex + dx;
             let y = rowIndex + dy;
@@ -112,9 +115,63 @@ export default class Connect4 {
                 indexes.push([colIndex, rowIndex]);
                 indexes.push(...indexesOpp);
                 winningIndexes.push(...indexes);
+
+                this.isEnded = player;
+                this.saveGame();
+                console.log(`Player ${player} wins!`);
             }
         }
 
         return winningIndexes;
+    }
+
+    saveGame() {
+        try {
+
+            const gameState = {
+                id: this.id,
+                date: new Date().toISOString(),
+                room: this.room ?? null,
+                moves: this.movesPlayed.slice(),
+                winner: this.isEnded,
+                columns: this.columns,
+                rows: this.rows
+            };
+
+            // post to the api
+            fetch('http://localhost:3000/api/games', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gameState)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Game saved successfully:', data);
+                })
+                .catch(error => {
+                    console.error('Error saving game:', error);
+                });
+
+        } catch (e) {
+            console.warn('Impossible de sauvegarder la partie :', e);
+        }
+    }
+
+    async loadGame(id) {
+        try {
+            // fetch from the api
+            const response = await fetch(`http://localhost:3000/api/games/${id}`);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const gameData = await response.json();
+            return gameData;
+
+        } catch (e) {
+            console.warn('Impossible de charger la partie :', e);
+            return null;
+        }
     }
 }
